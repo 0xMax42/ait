@@ -72,20 +72,9 @@ This command will look for a configuration file named `ait.KAI.config`.
 - `--max_tokens`: The maximum number of tokens (words or parts of words) in the API response. Default is `150`.
 - `--temperature`: Controls the randomness or creativity of the model's output. Lower values make the output more deterministic, while higher values make it more random. Default is `0.7`.
 
-### Example Config File (`ait.config.json.sample`)
+### Example Config Files
 
-```json
-{
-    "api_key": "YOUR_OPENAI_API_KEY_HERE",
-    "diff_expression": "main...",
-    "log_expression": "main...",
-    "system_prompt": "You are a helpful assistant that creates pull request descriptions.",
-    "prompt": "Please create a pull request description based on these changes.",
-    "model": "gpt-4",
-    "max_tokens": 150,
-    "temperature": 0.7
-}
-```
+See the [ait.commit.sample.config.json](ait.commit.sample.config.json) and [ait.pull_request.sample.config.json](ait.pull_request.sample.config.json) files for examples of configuration files.
 
 ### Error Handling
 
