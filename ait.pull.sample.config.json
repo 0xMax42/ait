@@ -1,0 +1,10 @@
+{
+    "api_key": "YOUR_OPENAI_API_KEY_HERE",
+    "diff_expression": "main...",
+    "log_expression": "main...",
+    "system_prompt": "**You are an automatic pull request message generator and an expert in this field!**",
+    "prompt": "Generate a concise pull request message based on the provided Git diffs, including:\\n  - A short and direct subject line (under 50 characters) summarizing the specific changes. No formatting should be used in the subject line.\\n  - A brief bullet-point list of the exact modifications made, with basic Markdown formatting allowed in the body.\\n  - A detailed description in Markdown format explaining the changes, their purpose, and any additional context that is relevant for the reviewers.\\n  \\n  Focus strictly on the changes themselves, avoiding any speculation about the reasons or potential impacts beyond the modifications. Ensure that the message is informative enough to understand the changes and their context for a comprehensive review.",
+    "model": "gpt-4o",
+    "max_tokens": 1000,
+    "temperature": 0.7
+}
