@@ -64,7 +64,7 @@ def run_git_commands(diff_expression, log_expression):
     diff_command = ["git", "diff", diff_expression]
     diff_result = subprocess.run(diff_command, capture_output=True, text=True)
     
-    log_command = ["git", "log", log_expression, "--pretty=format:%h %s%n%b%n---%n"]
+    log_command = ["git", "log", log_expression, "--pretty=\"format:%h%n%ad%n%s%n%n%b%n---%n\""]
     log_result = subprocess.run(log_command, capture_output=True, text=True)
     
     return diff_result.stdout, log_result.stdout
