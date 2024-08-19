@@ -22,7 +22,8 @@ def load_config(config_path):
 def resolve_config_path(config_input):
     """
     Resolves the configuration file path. If a single word is provided,
-    it looks for a file named 'ait.WORD.config' in the current directory.
+    it looks for a file named 'ait.WORD.config.json' in the current directory first,
+    then in a '.ait' directory in the user's home directory.
 
     Parameters:
     - config_input (str): The input provided via the command-line argument.
@@ -30,9 +31,24 @@ def resolve_config_path(config_input):
     Returns:
     - str: The resolved path to the configuration file.
     """
+    # If it's a keyword, construct the potential filenames
     if not config_input.endswith(".json"):
-        config_input = f"ait.{config_input}.config.json"
-    return config_input
+        config_filename = f"ait.{config_input}.config.json"
+    else:
+        config_filename = config_input
+
+    # Check in the current directory
+    if os.path.exists(config_filename):
+        return config_filename
+
+    # Check in the user's home directory under .ait/
+    home_directory = os.path.expanduser("~")
+    user_config_path = os.path.join(home_directory, ".ait", config_filename)
+    if os.path.exists(user_config_path):
+        return user_config_path
+
+    # If nothing found, return the filename (it will fail later if non-existent)
+    return config_filename
 
 def run_git_commands(diff_expression, log_expression):
     """
