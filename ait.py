@@ -146,4 +146,5 @@ if __name__ == "__main__":
     )
     
     # Output the generated text
-    print(generated_text)
+    print("\n" + generated_text + "\n")
+
