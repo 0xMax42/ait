@@ -20,7 +20,7 @@ This script uses the OpenAI API to generate text based on the outputs of `git di
 Clone the repository and navigate to the directory:
 
 ```bash
-git clone https://github.com/your-repository.git
+git clone https://github.com/PxaMMaxP/ait
 cd your-repository
 ```
 
@@ -55,10 +55,10 @@ python ait.py --config custom_config.json
 Alternatively, if you only provide a keyword, the script will look for a file named `ait.<KEYWORD>.config.json` in the current directory:
 
 ```bash
-python ait.py --config KAI
+python ait.py --config custom
 ```
 
-This command will look for a configuration file named `ait.KAI.config`.
+This command will look for a configuration file named `ait.custom.config`.
 
 ### Command-Line Options
 
