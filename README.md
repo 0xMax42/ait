@@ -1,3 +1,5 @@
+![Time](https://waka.mpassarello.de/api/badge/MaxP/interval:any/project:Ait?label=Project%20time)
+
 # AI-Generated Messages from Git Diffs and Logs
 
 This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative that requires summarizing changes between different branches or commits in a Git repository.
