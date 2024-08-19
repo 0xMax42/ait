@@ -3,3 +3,5 @@ ait.*.config.json
 !ait.sample.config.json
 !ait.*.sample.config.json
 dist/
+*.spec
+build/
