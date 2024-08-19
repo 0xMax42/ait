@@ -60,6 +60,12 @@ python ait.py --config custom
 
 This command will look for a configuration file named `ait.custom.config`.
 
+### Fallback Configuration File search
+
+As a fallback, if no configuration file is found, the script will search for it in the user's home directory under `~\.ait\*`.
+
+You can also provide a user wide configuration file by placing it in the `~\.ait\` directory.
+
 ### Command-Line Options
 
 - `--config`: Path to a JSON config file or a keyword to identify a specific config (`ait.<KEYWORD>.config`). Default is `ait.config.json`.
