@@ -1,0 +1,85 @@
+name: Create Release
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "VERSION"
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: "3.x"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pyinstaller openai
+
+      - name: Get the version
+        id: get_version
+        shell: pwsh
+        run: |
+          $VERSION = (Get-Content -Path "./VERSION" -Raw).Trim()
+          echo "VERSION=$VERSION" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8NoBOM -Append
+
+      - name: Run auto-py-to-exe
+        run: |
+          pyinstaller --noconfirm --onefile --console --name "ait-v${{ env.VERSION }}-winx64" --clean "./ait.py"
+
+      - name: Get previous release tag
+        id: get_previous_release
+        shell: pwsh
+        run: |
+          Write-Host "Fetching previous release tag..."
+          $previous_tag = git describe --tags --abbrev=0 HEAD^ 2>$null
+          if (-not $previous_tag) {
+            Write-Host "No previous tag found, using initial commit."
+            $previous_tag = git rev-list --max-parents=0 HEAD
+          }
+          Write-Host "Previous tag: $previous_tag"
+          echo "PREVIOUS_TAG=$previous_tag" | Out-File -FilePath $env:GITHUB_ENV -Encoding utf8 -Append
+
+      - name: Generate release notes
+        id: generate_notes
+        shell: pwsh
+        run: |
+          Write-Host "Generating release notes from $env:PREVIOUS_TAG to HEAD..."
+          $repo_url = git config --get remote.origin.url
+          $notes = git log "$env:PREVIOUS_TAG..HEAD" --pretty=format:"- [`%h`]($repo_url/commit/%H): %s"
+          Write-Host "Release notes:"
+          Write-Host "$notes"
+          "### Changes in this release" | Out-File -FilePath release_notes.md -Encoding utf8
+          $notes | Out-File -FilePath release_notes.md -Encoding utf8 -Append
+
+      - name: Create Tag
+        id: create_tag
+        shell: pwsh
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git tag $env:VERSION
+          git push origin $env:VERSION
+
+      - name: Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ env.VERSION }}
+          name: Release ${{ env.VERSION }}
+          body_path: release_notes.md
+          files: |
+            ./dist/ait-v${{ env.VERSION }}-winx64.exe
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
