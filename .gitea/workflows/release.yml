@@ -1,0 +1,222 @@
+name: Auto Changelog & Release
+
+on:
+  push:
+    branches:
+      - main
+      - '**'
+
+jobs:
+  detect-version-change:
+    runs-on: ubuntu-latest
+    outputs:
+      version_changed: ${{ steps.set.outputs.version_changed }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Check if VERSION file changed
+        if: github.ref == 'refs/heads/main'
+        run: |
+          echo "🔍 Vergleich mit github.event.before:"
+          echo "Before: ${{ github.event.before }}"
+          echo "After:  ${{ github.sha }}"
+
+          echo "📄 Changed files between before and after:"
+          git diff --name-only ${{ github.event.before }} ${{ github.sha }} || echo "(diff failed)"
+
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q '^VERSION$'; then
+            echo "✅ VERSION file was changed"
+            echo "VERSION_CHANGED=true" >> $GITHUB_ENV
+          else
+            echo "ℹ️ VERSION file not changed"
+            echo "VERSION_CHANGED=false" >> $GITHUB_ENV
+          fi
+
+      - name: Set output (always)
+        id: set
+        run: |
+          echo "version_changed=${VERSION_CHANGED:-false}" >> $GITHUB_OUTPUT
+
+  changelog-only:
+    needs: detect-version-change
+    if: github.ref != 'refs/heads/main' || needs.detect-version-change.outputs.version_changed == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Git Author
+        run: |
+          git config user.name "$CI_COMMIT_AUTHOR_NAME"
+          git config user.email "$CI_COMMIT_AUTHOR_EMAIL"
+
+      - name: Read CLIFF_VERSION from cliff.toml
+        id: cliff_version
+        run: |
+          echo "version=$(awk -F '=' '/^# CLIFF_VERSION=/ { gsub(/[" ]/, "", $2); print $2 }' cliff.toml)" >> $GITHUB_OUTPUT
+
+      - name: Restore git-cliff cache
+        id: restore-cliff
+        uses: https://git.0xmax42.io/actions/cache@v1
+        with:
+          key: cargo-cliff-${{ steps.cliff_version.outputs.version }}
+          paths: |
+            /root/.cargo/bin
+
+      - name: Install git-cliff
+        if: steps.restore-cliff.outputs.cache-hit != 'true'
+        run: |
+          cargo install git-cliff --version "${{ steps.cliff_version.outputs.version }}" --features gitea
+
+      - name: Generate unreleased changelog (if file exists or on main)
+        run: |
+          if [[ -f CHANGELOG.md || "${GITHUB_REF##refs/heads/}" == "main" ]]; then
+            echo "Generating CHANGELOG.md..."
+            git-cliff -c cliff.toml -o CHANGELOG.md
+          else
+            echo "CHANGELOG.md does not exist and this is not 'main'. Skipping generation."
+          fi
+
+      - name: Commit updated CHANGELOG
+        run: |
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(changelog): update unreleased changelog"
+            git push origin "${GITHUB_REF##refs/heads/}"
+          fi
+
+  release:
+    needs: detect-version-change
+    if: needs.detect-version-change.outputs.version_changed == 'true' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set Git Author
+        run: |
+          git config user.name "$CI_COMMIT_AUTHOR_NAME"
+          git config user.email "$CI_COMMIT_AUTHOR_EMAIL"
+
+      - name: Read VERSION
+        id: version
+        run: echo "value=$(cat VERSION)" >> $GITHUB_OUTPUT
+
+      - name: Read CLIFF_VERSION from cliff.toml
+        id: cliff_version
+        run: |
+          echo "version=$(awk -F '=' '/^# CLIFF_VERSION=/ { gsub(/[" ]/, "", $2); print $2 }' cliff.toml)" >> $GITHUB_OUTPUT
+
+      - name: Restore git-cliff cache
+        id: restore-cliff
+        uses: https://git.0xmax42.io/actions/cache@v1
+        with:
+          key: cargo-cliff-${{ steps.cliff_version.outputs.version }}
+          paths: |
+            /root/.cargo/bin
+
+      - name: Install git-cliff
+        if: steps.restore-cliff.outputs.cache-hit != 'true'
+        run: |
+          cargo install git-cliff --version "${{ steps.cliff_version.outputs.version }}" --features gitea
+      
+      - name: Generate changelog for release and tag
+        id: generate-changelog
+        run: |
+          VERSION=${{ steps.version.outputs.value }}
+          git-cliff -c cliff.toml -t "v$VERSION" -o CHANGELOG.md
+
+          BODY=$(mktemp)
+          ESCAPED_VERSION=$(echo "$VERSION" | sed 's/\./\\./g')
+
+          awk -v ver="$ESCAPED_VERSION" '
+            $0 ~ "^## \\[" ver "\\]" {
+              print_flag=1
+              line = $0
+              sub(/^## /, "", line)
+              sub(/\\s*\\(.*\\)/, "", line)  # entfernt z. B. "(...)" oder "(*)"
+              print line
+              next
+            }
+            $0 ~ "^## \\[" && $0 !~ "^## \\[" ver "\\]" {
+              print_flag=0
+            }
+            print_flag
+          ' CHANGELOG.md > "$BODY"
+
+          echo "changelog_body_path=$BODY" >> $GITHUB_OUTPUT
+
+
+      - name: Commit updated CHANGELOG
+        run: |
+          git add CHANGELOG.md
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore(changelog): update changelog for v${{ steps.version.outputs.value }}"
+            git push origin main
+          fi
+
+      - name: Create Git tag (if not exists)
+        run: |
+          VERSION=${{ steps.version.outputs.value }}
+          if git rev-parse "v$VERSION" >/dev/null 2>&1; then
+            echo "Tag v$VERSION already exists, skipping tag creation."
+          else
+            git tag -a "v$VERSION" -F "${{ steps.generate-changelog.outputs.changelog_body_path }}" --cleanup=verbatim
+            git push origin "v$VERSION"
+          fi
+
+      - name: Create Gitea release
+        env: 
+          RELEASE_PUBLISH_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+        run: |
+          VERSION=${{ steps.version.outputs.value }}
+          BODY_FILE="${{ steps.generate-changelog.outputs.changelog_body_path }}"
+
+          OWNER=$(echo "$GITHUB_REPOSITORY" | cut -d/ -f1)
+          REPO=$(echo "$GITHUB_REPOSITORY" | cut -d/ -f2)
+
+          # Token-Auswahl
+          TOKEN="${RELEASE_PUBLISH_TOKEN:-$ACTIONS_RUNTIME_TOKEN}"
+
+          if [[ -z "${RELEASE_PUBLISH_TOKEN:-}" ]]; then
+            echo "::warning title=Limited Release Propagation::"
+            echo "RELEASE_PUBLISH_TOKEN is not set. Using ACTIONS_RUNTIME_TOKEN instead."
+            echo "⚠️  Release events may not trigger other workflows if created with the runtime token."
+            echo
+          fi
+
+          # Prüfe, ob der Release schon existiert
+          if curl -sf "$GITHUB_API_URL/repos/$OWNER/$REPO/releases/tags/v$VERSION" \
+            -H "Authorization: token $TOKEN" > /dev/null; then
+            echo "🔁 Release for tag v$VERSION already exists, skipping."
+            exit 0
+          fi
+
+          echo "🚀 Creating Gitea release for v$VERSION"
+
+          # Release-Beschreibung vorbereiten
+          RELEASE_BODY=$(tail -n +2 "$BODY_FILE" | jq -Rs .)
+
+          curl -X POST "$GITHUB_API_URL/repos/$OWNER/$REPO/releases" \
+            -H "Authorization: token $TOKEN" \
+            -H "Content-Type: application/json" \
+            -d @- <<EOF
+          {
+            "tag_name": "v$VERSION",
+            "target_commitish": "main",
+            "name": "Release v$VERSION",
+            "body": $RELEASE_BODY,
+            "draft": false,
+            "prerelease": false
+          }
+          EOF
+
+          echo "✅ Release for tag $VERSION created successfully."

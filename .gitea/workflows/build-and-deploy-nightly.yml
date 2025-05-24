@@ -1,0 +1,62 @@
+name: Build and Publish nightly package
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'CHANGELOG.md'
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 🔄 Restore cache
+        uses: https://git.0xmax42.io/actions/cache@v1
+        with:
+          key: poetry-v1-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          paths: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Install Project Dependencies
+        working-directory: .
+        run: |
+          poetry install
+
+      - name: Set version from VERSION file (with nightly suffix)
+        run: ./.gitea/scripts/set_poetry_version.sh nightly
+
+      - name: Build Package
+        working-directory: .
+        run: |
+          poetry build
+
+      - name: Publish to Gitea Package Registry
+        working-directory: .
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          poetry run twine upload --repository-url ${{ secrets.TWINE_URL }} dist/*
+
+      - name: Cleanup old dev versions
+        run: |
+          .gitea/scripts/cleanup_versions.sh '\.dev'
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}

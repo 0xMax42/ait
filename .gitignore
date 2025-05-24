@@ -5,3 +5,5 @@ ait.*.config.json
 dist/
 *.spec
 build/
+**/__pycache__
+.gitea/scripts/.env

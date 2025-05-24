@@ -1,0 +1,64 @@
+name: Build and Publish nightly package
+
+on:
+  release:
+    types: [published] 
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-22.04
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+
+      - name: 🐍 Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: 🔄 Restore cache
+        uses: https://git.0xmax42.io/actions/cache@v1
+        with:
+          key: poetry-v1-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
+          paths: |
+            ~/.cache/pypoetry
+            ~/.cache/pip
+
+      - name: Install Poetry
+        run: |
+          pip install poetry
+
+      - name: Install Project Dependencies
+        working-directory: .
+        run: |
+          poetry install
+
+      - name: Build Package
+        working-directory: .
+        run: |
+          poetry build
+
+      - name: Get built wheel filename
+        id: get_whl
+        run: |
+          echo "whl_file=$(basename dist/*.whl)" >> $GITHUB_OUTPUT
+          echo "sdist_file=$(basename dist/*.tar.gz)" >> $GITHUB_OUTPUT
+
+      - name: Publish to Gitea Package Registry
+        working-directory: .
+        env:
+          TWINE_USERNAME: ${{ secrets.TWINE_USERNAME }}
+          TWINE_PASSWORD: ${{ secrets.TWINE_PASSWORD }}
+        run: |
+          poetry run twine upload --repository-url ${{ secrets.TWINE_URL }} dist/*
+
+      - name: Get Release ID from tag
+        run: .gitea/scripts/get-release-id.sh "${{ github.event.release.tag_name }}"
+
+      - name: Upload assets
+        run: | 
+          .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.whl_file }}
+          .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.sdist_file }}
