@@ -106,11 +106,11 @@ def generate_text_from_git_data(diff_output, log_output, system_prompt, user_pro
     )
     
     # Extract and return the generated text
-    generated_text = response.choices[0].message.content.strip()
+    generated_text = response.choices[0].message.content.strip() # type: ignore
     return generated_text
 
-if __name__ == "__main__":
-    # Default configuration file path
+def main():
+        # Default configuration file path
     default_config_path = "ait.config.json"
     
     # Parse command-line arguments

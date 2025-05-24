@@ -1,0 +1,21 @@
+[tool.poetry]
+name = "ait"
+version = "0.1.0"
+description = "This script uses the OpenAI API to generate text based on the outputs of git diff and git log commands. It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative that requires summarizing changes between different branches or commits in a Git repository."
+authors = ["Max P. <Mail@0xMax42.io>"]
+readme = "README.md"
+packages = [{ include = "ait", from = "src" }]
+
+[tool.poetry.dependencies]
+python = ">=3.12"
+openai = "^1.82.0"
+
+[tool.poetry.scripts]
+ait = "ait.__main__:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.group.dev.dependencies]
+twine = "^6.1.0"
