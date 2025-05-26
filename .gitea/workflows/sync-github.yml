@@ -7,8 +7,8 @@ on:
         description: "Release tag to synchronize"
         required: false
         type: string
-  # release:
-  #   types: [published, edited]
+  release:
+    types: [published, edited]
 
 jobs:
   sync-github:
