@@ -18,7 +18,7 @@ jobs:
       - name: Run Releases Sync Action
         uses: https://git.0xmax42.io/actions/releases-sync@main
         with:
-          gitea_token: ${{ ACTIONS_RUNTIME_TOKEN }}
+          gitea_token: $ACTIONS_RUNTIME_TOKEN
           gitea_url: https://git.0xmax42.io
           gitea_owner: maxp
           gitea_repo: ait
