@@ -19,7 +19,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Run Releases Sync Action
-        uses: https://git.0xmax42.io/actions/releases-sync
+        uses: https://git.0xmax42.io/actions/releases-sync@main
         with:
           tag_name: ${{ inputs.tag || github.event.release.tag_name }}
           github_token: ${{ secrets.SYNC_GITHUB_TOKEN }}
