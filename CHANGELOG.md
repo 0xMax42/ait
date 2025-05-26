@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### 🚀 Features
+
+- *(workflows)* Add GitHub release sync workflow - ([8b3117f](https://git.0xmax42.io/maxp/ait/commit/8b3117fdca5c9cd20cfb9ac3cfe0b0f1ee5f9656))
+
 ## [0.1.0] - 2025-05-24
 
 ### 🚀 Features
