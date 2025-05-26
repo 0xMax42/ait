@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - *(workflows)* Add GitHub release sync workflow - ([e478576](https://git.0xmax42.io/maxp/ait/commit/e4785769eac1dae3945a388dd745fa43555ea4da))
 - *(workflows)* Add GitHub release sync workflow - ([8b3117f](https://git.0xmax42.io/maxp/ait/commit/8b3117fdca5c9cd20cfb9ac3cfe0b0f1ee5f9656))
 
+### 🐛 Bug Fixes
+
+- *(workflows)* Correct token syntax in releases sync action - ([de05716](https://git.0xmax42.io/maxp/ait/commit/de05716b072f81351c603d82dafa17ee751b3dad))
+
 ### ⚙️ Miscellaneous Tasks
 
 - *(workflows)* Enable release event handling in sync-github - ([e875e78](https://git.0xmax42.io/maxp/ait/commit/e875e781a73349e6ac7092e3c599bdfb2526e08e))
