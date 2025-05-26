@@ -2,7 +2,7 @@ name: Build and Publish nightly package
 
 on:
   release:
-    types: [published] 
+    types: [published]
 
 jobs:
   build-and-publish:
@@ -59,6 +59,18 @@ jobs:
         run: .gitea/scripts/get-release-id.sh "${{ github.event.release.tag_name }}"
 
       - name: Upload assets
-        run: | 
+        run: |
           .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.whl_file }}
           .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.sdist_file }}
+
+      - name: Run Releases Sync Action
+        uses: https://git.0xmax42.io/actions/releases-sync@main
+        with:
+          gitea_token: $ACTIONS_RUNTIME_TOKEN
+          gitea_url: https://git.0xmax42.io
+          gitea_owner: maxp
+          gitea_repo: ait
+          tag_name: ${{ inputs.tag || github.event.release.tag_name }}
+          github_token: ${{ secrets.SYNC_GITHUB_TOKEN }}
+          github_owner: 0xMax42
+          github_repo: ait
