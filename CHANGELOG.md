@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- *(workflows)* Enable release event handling in sync-github - ([e875e78](https://git.0xmax42.io/maxp/ait/commit/e875e781a73349e6ac7092e3c599bdfb2526e08e))
 - *(workflows)* Remove unnecessary checkout step - ([45a6113](https://git.0xmax42.io/maxp/ait/commit/45a61134d6f8112c710fa1acdfb8c6205da287b4))
 
 ## [0.1.0] - 2025-05-24
