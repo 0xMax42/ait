@@ -69,7 +69,7 @@ def run_git_commands(diff_expression, log_expression):
     
     return diff_result.stdout, log_result.stdout
 
-def generate_text_from_git_data(diff_output, log_output, system_prompt, user_prompt, model, max_tokens, temperature, api_key):
+def generate_text_from_git_data(diff_output, log_output, system_prompt, user_prompt, model, temperature, api_key, max_tokens=None, max_completion_tokens=None):
     """
     Generates text using the OpenAI API based on git diff and log outputs.
 
@@ -98,12 +98,26 @@ def generate_text_from_git_data(diff_output, log_output, system_prompt, user_pro
     ]
     
     # Generate the text using OpenAI's API
-    response = client.chat.completions.create(
-        model=model,
-        messages=messages,
-        max_tokens=max_tokens,
-        temperature=temperature
-    )
+    if max_tokens:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_tokens=max_tokens,
+            temperature=temperature
+        )
+    elif max_completion_tokens:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            max_completion_tokens=max_completion_tokens,
+            temperature=temperature
+        )
+    else:
+        response = client.chat.completions.create(
+            model=model,
+            messages=messages,
+            temperature=temperature
+        )
     
     # Extract and return the generated text
     generated_text = response.choices[0].message.content.strip() # type: ignore
@@ -123,7 +137,8 @@ def main():
     parser.add_argument('--system_prompt', type=str, help="The system prompt to set the behavior of the assistant.")
     parser.add_argument('--prompt', type=str, help="The prompt to guide the description creation.")
     parser.add_argument('--model', type=str, help="The OpenAI model to use. Default is 'gpt-4'.")
-    parser.add_argument('--max_tokens', type=int, help="Maximum tokens for the API response. Default is 150.")
+    parser.add_argument('--max_tokens', type=int, help="Maximum tokens for the API response. Default is None.")
+    parser.add_argument('--max_completion_tokens', type=int, help="Maximum tokens for the API response. Default is None.")
     parser.add_argument('--temperature', type=float, help="Sampling temperature for the model. Default is 0.7.")
     
     args = parser.parse_args()
@@ -146,7 +161,8 @@ def main():
     system_prompt = args.system_prompt or config.get('system_prompt', "You are a helpful assistant that creates pull request descriptions.")
     user_prompt = args.prompt or config.get('prompt', "Please create a pull request description based on these changes.")
     model = args.model or config.get('model', 'gpt-4')
-    max_tokens = args.max_tokens or config.get('max_tokens', 150)
+    max_tokens = args.max_tokens or config.get('max_tokens', None)
+    max_completion_tokens = args.max_completion_tokens or config.get('max_completion_tokens', None)
     temperature = args.temperature or config.get('temperature', 0.7)
 
     # Ensure API key is provided
@@ -158,7 +174,7 @@ def main():
     
     # Generate text based on the git data
     generated_text = generate_text_from_git_data(
-        diff_output, log_output, system_prompt, user_prompt, model, max_tokens, temperature, api_key
+        diff_output, log_output, system_prompt, user_prompt, model, temperature, api_key, max_tokens, max_completion_tokens
     )
     
     # Output the generated text
