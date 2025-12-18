@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Add support for max_completion_tokens argument - ([34d0f46](https://git.0xmax42.io/maxp/ait/commit/34d0f46510a8b08215ea24604e6f7c216b1f63c1))
 - *(workflows)* Add release sync to GitHub and clean up - ([8d5f168](https://git.0xmax42.io/maxp/ait/commit/8d5f168a10e674effe27aab69d348c52f3f8a58f))
 - *(workflows)* Add Gitea integration to sync action - ([81b2339](https://git.0xmax42.io/maxp/ait/commit/81b2339ea6d67a73dd62fb67b41db60388750610))
 - *(workflows)* Add GitHub release sync workflow - ([e478576](https://git.0xmax42.io/maxp/ait/commit/e4785769eac1dae3945a388dd745fa43555ea4da))
