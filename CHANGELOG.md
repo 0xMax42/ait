@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [unreleased]
+
+### ⚙️ Miscellaneous Tasks
+
+- *(ci)* Update release token to use secrets for deployment - ([c7fec60](https://git.0xmax42.io/maxp/ait/commit/c7fec60f8f5f2a6809a9699f24497cd9be78d0b2))
+
 ## [0.2.0](https://git.0xmax42.io/maxp/ait/compare/v0.1.0..v0.2.0) - 2025-12-18
 
 ### 🚀 Features
