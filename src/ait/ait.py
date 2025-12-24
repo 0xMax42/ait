@@ -2,6 +2,7 @@ import subprocess
 import argparse
 import json
 import os
+from typing import Optional
 from openai import OpenAI
 
 def load_config(config_path):
@@ -50,6 +51,38 @@ def resolve_config_path(config_input):
     # If nothing found, return the filename (it will fail later if non-existent)
     return config_filename
 
+def extract_config_keyword(config_input):
+    """Derives the keyword portion from a config selector or path."""
+    if not config_input:
+        return None
+
+    basename = os.path.basename(config_input)
+    if not basename.endswith(".json"):
+        return basename
+
+    marker = "ait."
+    suffix = ".config.json"
+    if basename.startswith(marker) and basename.endswith(suffix):
+        keyword = basename[len(marker):-len(suffix)]
+        return keyword or None
+
+    return None
+
+def load_context_content(keyword: Optional[str] = None):
+    """Loads optional context markdown from the current working directory."""
+    candidates = []
+    if keyword:
+        candidates.append(f".ai.{keyword}.md")
+    candidates.append(".ai.md")
+
+    cwd = os.getcwd()
+    for filename in candidates:
+        candidate_path = os.path.join(cwd, filename)
+        if os.path.isfile(candidate_path):
+            with open(candidate_path, "r", encoding="utf-8") as context_file:
+                return context_file.read()
+    return None
+
 def run_git_commands(diff_expression, log_expression):
     """
     Executes git commands to obtain the diff and log outputs.
@@ -69,7 +102,27 @@ def run_git_commands(diff_expression, log_expression):
     
     return diff_result.stdout, log_result.stdout
 
-def generate_text_from_git_data(diff_output, log_output, system_prompt, user_prompt, model, temperature, api_key, max_tokens=None, max_completion_tokens=None):
+def collect_tree_snapshot(ref="HEAD"):
+    """Collects a shallow repository tree listing using git ls-tree."""
+    tree_command = ["git", "ls-tree", "--name-only", ref]
+    tree_result = subprocess.run(tree_command, capture_output=True, text=True)
+    if tree_result.returncode == 0:
+        return tree_result.stdout.strip()
+    return None
+
+def generate_text_from_git_data(
+    diff_output,
+    log_output,
+    system_prompt,
+    user_prompt,
+    model,
+    temperature,
+    api_key,
+    max_tokens=None,
+    max_completion_tokens=None,
+    context_text: Optional[str] = None,
+    tree_summary: Optional[str] = None,
+):
     """
     Generates text using the OpenAI API based on git diff and log outputs.
 
@@ -94,8 +147,21 @@ def generate_text_from_git_data(diff_output, log_output, system_prompt, user_pro
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"Here is the git diff output:\n{diff_output}"},
         {"role": "user", "content": f"Here is the git log output:\n{log_output}"},
-        {"role": "user", "content": user_prompt}
     ]
+
+    if context_text:
+        messages.append({
+            "role": "user",
+            "content": f"Here is additional context from the .ai markdown file:\n{context_text}"
+        })
+
+    if tree_summary:
+        messages.append({
+            "role": "user",
+            "content": f"Here is the repository tree summary from 'git ls-tree HEAD':\n{tree_summary}"
+        })
+
+    messages.append({"role": "user", "content": user_prompt})
     
     # Generate the text using OpenAI's API
     if max_tokens:
@@ -140,6 +206,9 @@ def main():
     parser.add_argument('--max_tokens', type=int, help="Maximum tokens for the API response. Default is None.")
     parser.add_argument('--max_completion_tokens', type=int, help="Maximum tokens for the API response. Default is None.")
     parser.add_argument('--temperature', type=float, help="Sampling temperature for the model. Default is 0.7.")
+    parser.add_argument('--tree', dest='include_tree', action='store_true', help="Include a repo overview via 'git ls-tree HEAD'.")
+    parser.add_argument('--no-tree', dest='include_tree', action='store_false', help="Disable the repo overview, overriding config.")
+    parser.set_defaults(include_tree=None)
     
     args = parser.parse_args()
 
@@ -150,6 +219,8 @@ def main():
         config_path = resolve_config_path(args.single_arg)
     else:
         config_path = default_config_path
+
+    resolved_config_keyword = extract_config_keyword(config_path)
 
     # Load configuration settings
     config = load_config(config_path)
@@ -164,6 +235,7 @@ def main():
     max_tokens = args.max_tokens or config.get('max_tokens', None)
     max_completion_tokens = args.max_completion_tokens or config.get('max_completion_tokens', None)
     temperature = args.temperature or config.get('temperature', 0.7)
+    include_tree = config.get('include_tree', False) if args.include_tree is None else args.include_tree
 
     # Ensure API key is provided
     if not api_key:
@@ -171,10 +243,23 @@ def main():
     
     # Execute git commands and get the outputs
     diff_output, log_output = run_git_commands(diff_expression, log_expression)
+
+    context_text = load_context_content(resolved_config_keyword)
+    tree_summary = collect_tree_snapshot() if include_tree else None
     
     # Generate text based on the git data
     generated_text = generate_text_from_git_data(
-        diff_output, log_output, system_prompt, user_prompt, model, temperature, api_key, max_tokens, max_completion_tokens
+        diff_output,
+        log_output,
+        system_prompt,
+        user_prompt,
+        model,
+        temperature,
+        api_key,
+        max_tokens,
+        max_completion_tokens,
+        context_text=context_text,
+        tree_summary=tree_summary
     )
     
     # Output the generated text

@@ -4,6 +4,7 @@
     "log_expression": "--oneline HEAD",
     "system_prompt": "**You are an automatic commit message generator and an expert in this field!**",
     "prompt": "Generate a concise commit message based on the provided Git diffs, including:\\n  - A short and direct subject line (under 50 characters) summarizing the specific changes. No formatting should be used in the subject line.\\n - A brief bullet-point list of the exact modifications made, with basic Markdown formatting allowed in the body.\\n \\n Focus strictly on the changes themselves, avoiding any speculation about the reasons or potential impacts. Ensure that the message is informative enough to understand the changes without needing additional context.",
+    "include_tree": false,
     "model": "gpt-4o",
     "max_tokens": 1000,
     "temperature": 0.6
