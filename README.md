@@ -16,6 +16,7 @@ This script uses the OpenAI API to generate text based on the outputs of `git di
 - **Easy Configuration Management**: The script can load configurations via command-line arguments or shorthand keywords, making it convenient to switch between different setups.
 - **Context-aware Summaries**: Optional `.ai.<keyword>.md` or `.ai.md` files from the working directory can be injected as additional context for higher quality output.
 - **Repository Tree Snapshot**: Toggle a `git ls-tree HEAD` overview to share the current top-level structure alongside diffs and logs.
+- **Clipboard Export**: Optionally copy the generated text directly to your Wayland clipboard via `wl-copy`.
 
 ## Prerequisites
 
@@ -88,10 +89,11 @@ You can also provide a user wide configuration file by placing it in the `~\.ait
 - `--max_tokens`: The maximum number of tokens (words or parts of words) in the API response. Default is `150`.
 - `--temperature`: Controls the randomness or creativity of the model's output. Lower values make the output more deterministic, while higher values make it more random. Default is `0.7`.
 - `--tree` / `--no-tree`: Enable or disable inclusion of the `git ls-tree HEAD` summary, overriding the config file.
+- `--copy` / `--no-copy`: Enable or disable copying the generated text to the clipboard via `wl-copy`.
 
 ### Example Config Files
 
-See the [ait.commit.sample.config.json](ait.commit.sample.config.json) and [ait.pull_request.sample.config.json](ait.pull_request.sample.config.json) files for examples of configuration files, including the optional `include_tree` toggle.
+See the [ait.commit.sample.config.json](ait.commit.sample.config.json) and [ait.pull_request.sample.config.json](ait.pull_request.sample.config.json) files for examples of configuration files, including the optional `include_tree` and `copy_to_clipboard` toggles.
 
 ### Error Handling
 

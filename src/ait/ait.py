@@ -208,7 +208,9 @@ def main():
     parser.add_argument('--temperature', type=float, help="Sampling temperature for the model. Default is 0.7.")
     parser.add_argument('--tree', dest='include_tree', action='store_true', help="Include a repo overview via 'git ls-tree HEAD'.")
     parser.add_argument('--no-tree', dest='include_tree', action='store_false', help="Disable the repo overview, overriding config.")
-    parser.set_defaults(include_tree=None)
+    parser.add_argument('--copy', dest='copy_to_clipboard', action='store_true', help="Copy the generated text to the clipboard using wl-copy.")
+    parser.add_argument('--no-copy', dest='copy_to_clipboard', action='store_false', help="Skip copying the generated text, overriding config.")
+    parser.set_defaults(include_tree=None, copy_to_clipboard=None)
     
     args = parser.parse_args()
 
@@ -236,6 +238,7 @@ def main():
     max_completion_tokens = args.max_completion_tokens or config.get('max_completion_tokens', None)
     temperature = args.temperature or config.get('temperature', 0.7)
     include_tree = config.get('include_tree', False) if args.include_tree is None else args.include_tree
+    copy_to_clipboard = config.get('copy_to_clipboard', False) if args.copy_to_clipboard is None else args.copy_to_clipboard
 
     # Ensure API key is provided
     if not api_key:
@@ -264,4 +267,10 @@ def main():
     
     # Output the generated text
     print("\n" + generated_text + "\n")
+
+    if copy_to_clipboard:
+        try:
+            subprocess.run(["wl-copy"], input=generated_text.encode(), check=True)
+        except (FileNotFoundError, subprocess.CalledProcessError) as exc:
+            print(f"Failed to copy result to clipboard: {exc}")
 
