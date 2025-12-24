@@ -6,7 +6,13 @@ All notable changes to this project will be documented in this file.
 
 ### 🚀 Features
 
+- Add clipboard export option via wl-copy and config - ([4a86c46](https://git.0xmax42.io/maxp/ait/commit/4a86c4671160ddc610f500ffc4fc38e23314f5a9))
 - Add context file and repo tree snapshot support - ([bdadc77](https://git.0xmax42.io/maxp/ait/commit/bdadc77187fc0e5df593d85d8dfa0bd64d35ee6f))
+
+### 🐛 Bug Fixes
+
+- Enable recursive tree listing with git ls-tree - ([26c29bc](https://git.0xmax42.io/maxp/ait/commit/26c29bc00462f388c2e4d46fc36a6a29f72ba77c))
+- Update context markdown file naming convention - ([f0d8360](https://git.0xmax42.io/maxp/ait/commit/f0d8360fe5d0cc562df1411bb62e79fbdae4a5f4))
 
 ### ⚙️ Miscellaneous Tasks
 
