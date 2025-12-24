@@ -4,8 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 🚀 Features
+
+- Add context file and repo tree snapshot support - ([bdadc77](https://git.0xmax42.io/maxp/ait/commit/bdadc77187fc0e5df593d85d8dfa0bd64d35ee6f))
+
 ### ⚙️ Miscellaneous Tasks
 
+- Remove changelog configuration file - ([eefbac9](https://git.0xmax42.io/maxp/ait/commit/eefbac9cbffb7b41e4531dcd2b9aa14beaaf80cf))
 - *(ci)* Update release token to use secrets for deployment - ([c7fec60](https://git.0xmax42.io/maxp/ait/commit/c7fec60f8f5f2a6809a9699f24497cd9be78d0b2))
 
 ## [0.2.0](https://git.0xmax42.io/maxp/ait/compare/v0.1.0..v0.2.0) - 2025-12-18
@@ -28,6 +33,11 @@ All notable changes to this project will be documented in this file.
 - *(workflows)* Improve git-cliff installation and tagging - ([aa25ceb](https://git.0xmax42.io/maxp/ait/commit/aa25ceb957a07a5267bfd53dea8c58827c9c6840))
 - *(workflows)* Enable release event handling in sync-github - ([e875e78](https://git.0xmax42.io/maxp/ait/commit/e875e781a73349e6ac7092e3c599bdfb2526e08e))
 - *(workflows)* Remove unnecessary checkout step - ([45a6113](https://git.0xmax42.io/maxp/ait/commit/45a61134d6f8112c710fa1acdfb8c6205da287b4))
+
+### 📦 Dependencies
+
+- *(deps)* Update lockfile - ([e9aaec5](https://git.0xmax42.io/maxp/ait/commit/e9aaec5e274d3242759422ecbdfa05f899b4c36e))
+- *(deps)* Update Python version requirement to >=3.11 - ([7c8b1f4](https://git.0xmax42.io/maxp/ait/commit/7c8b1f4dbffd0dfd3cd070ffab67da6f8a6cc313))
 
 ## [0.1.0] - 2025-05-24
 
