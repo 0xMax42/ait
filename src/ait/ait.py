@@ -72,8 +72,8 @@ def load_context_content(keyword: Optional[str] = None):
     """Loads optional context markdown from the current working directory."""
     candidates = []
     if keyword:
-        candidates.append(f".ai.{keyword}.md")
-    candidates.append(".ai.md")
+        candidates.append(f".ait.{keyword}.md")
+    candidates.append(".ait.md")
 
     cwd = os.getcwd()
     for filename in candidates:
