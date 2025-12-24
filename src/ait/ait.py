@@ -103,8 +103,8 @@ def run_git_commands(diff_expression, log_expression):
     return diff_result.stdout, log_result.stdout
 
 def collect_tree_snapshot(ref="HEAD"):
-    """Collects a shallow repository tree listing using git ls-tree."""
-    tree_command = ["git", "ls-tree", "--name-only", ref]
+    """Collects a repository tree listing using git ls-tree (recursively)."""
+    tree_command = ["git", "ls-tree", "--name-only", "-r", ref]
     tree_result = subprocess.run(tree_command, capture_output=True, text=True)
     if tree_result.returncode == 0:
         return tree_result.stdout.strip()
