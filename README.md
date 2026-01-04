@@ -1,4 +1,4 @@
-![Time](https://waka.mpassarello.de/api/badge/MaxP/interval:any/project:Ait?label=Project%20time)
+![Time](https://waka.0xmax42.io/api/badge/0XMax42/interval:any/project:Ait?label=Project%20time)
 
 <p align="center">
   <img width="600" src="./docs/ait.webp">
