@@ -5,7 +5,7 @@ on:
     types: [published]
 
 jobs:
-  build-and-publish:
+  upload-wheel-package:
     runs-on: ubuntu-22.04
 
     steps:
@@ -17,7 +17,12 @@ jobs:
       - name: 🐍 Setup Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -yq debcrafter-0 tea-pkg-0
 
       - name: 🔄 Restore cache
         uses: https://git.0xmax42.io/actions/cache@v1
@@ -41,12 +46,6 @@ jobs:
         run: |
           poetry build
 
-      - name: Get built wheel filename
-        id: get_whl
-        run: |
-          echo "whl_file=$(basename dist/*.whl)" >> $GITHUB_OUTPUT
-          echo "sdist_file=$(basename dist/*.tar.gz)" >> $GITHUB_OUTPUT
-
       - name: Publish to Gitea Package Registry
         working-directory: .
         env:
@@ -55,14 +54,49 @@ jobs:
         run: |
           poetry run twine upload --repository-url ${{ secrets.TWINE_URL }} dist/*
 
-      - name: Get Release ID from tag
-        run: .gitea/scripts/get-release-id.sh "${{ github.event.release.tag_name }}"
-
       - name: Upload assets
         run: |
-          .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.whl_file }}
-          .gitea/scripts/upload-asset.sh ./dist/${{ steps.get_whl.outputs.sdist_file }}
+          tea-pkg release-asset maxp/ait ${{ github.event.release.tag_name }} \
+            ./dist/*.whl ./dist/*.tar.gz
 
+  upload-deb-package:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          fetch-depth: 0
+
+      - name: Install dependencies
+        run: |
+          apt-get update -qq
+          apt-get install -yq debcrafter-0 tea-pkg-0
+
+      - name: Login to Gitea Docker Registry
+        env:
+          USERNAME: ${{ secrets.PACKAGE_USER }}
+          PASSWORD: ${{ secrets.PACKAGE_TOKEN }}
+        run: echo "$PASSWORD" | docker login git.0xmax42.io --username "$USERNAME" --password-stdin
+
+      - name: Build DEB package
+        run: |
+          debcrafter run --container-exec docker
+
+      - name: Upload DEB package
+        env:
+          GITEA_BASE_URL: https://git.0xmax42.io
+          GITEA_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
+        run: |
+          tea-pkg publish-deb debrepo ./dist/*.deb
+          tea-pkg release-asset maxp/ait ${{ github.event.release.tag_name }} \
+            ./dist/*.deb
+
+  sync-releases:
+    runs-on: ubuntu-latest
+    needs: [upload-wheel-package, upload-deb-package]
+
+    steps:
       - name: Run Releases Sync Action
         uses: https://git.0xmax42.io/actions/releases-sync@main
         with:
