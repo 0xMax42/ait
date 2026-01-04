@@ -83,21 +83,31 @@ def load_context_content(keyword: Optional[str] = None):
                 return context_file.read()
     return None
 
+def _normalize_git_args(expression):
+    if expression is None:
+        return []
+    if isinstance(expression, str):
+        return [expression]
+    if isinstance(expression, (list, tuple)):
+        return [str(item) for item in expression]
+    return [str(expression)]
+
+
 def run_git_commands(diff_expression, log_expression):
     """
     Executes git commands to obtain the diff and log outputs.
 
     Parameters:
-    - diff_expression (str): The git diff expression to compare branches or commits.
-    - log_expression (str): The git log expression to retrieve commit history.
+    - diff_expression (str | list[str]): Arguments passed to `git diff`.
+    - log_expression (str | list[str]): Arguments passed to `git log`.
 
     Returns:
     - tuple: A tuple containing the diff output and the log output as strings.
     """
-    diff_command = ["git", "diff", diff_expression]
+    diff_command = ["git", "diff", *_normalize_git_args(diff_expression)]
     diff_result = subprocess.run(diff_command, capture_output=True, text=True)
     
-    log_command = ["git", "log", log_expression, "--pretty=\"format:%h%n%ad%n%s%n%n%b%n---%n\""]
+    log_command = ["git", "log", *_normalize_git_args(log_expression), "--pretty=\"format:%h%n%ad%n%s%n%n%b%n---%n\""]
     log_result = subprocess.run(log_command, capture_output=True, text=True)
     
     return diff_result.stdout, log_result.stdout
@@ -118,10 +128,12 @@ def generate_text_from_git_data(
     model,
     temperature,
     api_key,
+    base_url: Optional[str] = None,
     max_tokens=None,
     max_completion_tokens=None,
     context_text: Optional[str] = None,
     tree_summary: Optional[str] = None,
+    debug: bool = False,
 ):
     """
     Generates text using the OpenAI API based on git diff and log outputs.
@@ -135,18 +147,21 @@ def generate_text_from_git_data(
     - max_tokens (int): The maximum number of tokens for the AI response.
     - temperature (float): The sampling temperature to control creativity.
     - api_key (str): The API key for accessing the OpenAI API.
+    - base_url (str, optional): Optional base URL for the OpenAI API endpoint.
 
     Returns:
     - str: The generated text from the AI.
     """
-    # Create OpenAI client
-    client = OpenAI(api_key=api_key)
+    client_kwargs = {"api_key": api_key}
+    if base_url:
+        client_kwargs["base_url"] = base_url
+    client = OpenAI(**client_kwargs)
 
     # Construct the messages for the AI
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": f"Here is the git diff output:\n{diff_output}"},
-        {"role": "user", "content": f"Here is the git log output:\n{log_output}"},
+        {"role": "user", "content": f"Previous commits (for reference only, do not copy type or scope):\n{log_output}"},
     ]
 
     if context_text:
@@ -158,10 +173,25 @@ def generate_text_from_git_data(
     if tree_summary:
         messages.append({
             "role": "user",
-            "content": f"Here is the repository tree summary from 'git ls-tree HEAD':\n{tree_summary}"
+            "content": f"Repository structure overview (informational only, NOT an indicator of change type):\n{tree_summary}"
         })
 
     messages.append({"role": "user", "content": user_prompt})
+
+    if debug:
+        print("[DEBUG] Prepared OpenAI request payload:")
+        print(f"  model: {model}")
+        print(f"  temperature: {temperature}")
+        if max_tokens is not None:
+            print(f"  max_tokens: {max_tokens}")
+        if max_completion_tokens is not None:
+            print(f"  max_completion_tokens: {max_completion_tokens}")
+        print("  messages:")
+        for index, message in enumerate(messages, start=1):
+            print(f"    [{index}] role={message['role']}")
+            print("    -----")
+            print(message['content'])
+            print("    -----")
     
     # Generate the text using OpenAI's API
     if max_tokens:
@@ -198,6 +228,7 @@ def main():
     parser.add_argument('single_arg', nargs='?', help="A single argument that can be a config file or a keyword for 'ait.KEYWORD.config'.")
     parser.add_argument('--config', type=str, help="Path to the JSON config file or a keyword for 'ait.KEYWORD.config'.")
     parser.add_argument('--api_key', type=str, help="Your OpenAI API key.")
+    parser.add_argument('--base_url', type=str, help="Base URL for the OpenAI API endpoint.")
     parser.add_argument('--diff_expression', type=str, help="The git diff expression to use. Default is 'main...'.")
     parser.add_argument('--log_expression', type=str, help="The git log expression to use. Default is 'main...'.")
     parser.add_argument('--system_prompt', type=str, help="The system prompt to set the behavior of the assistant.")
@@ -210,7 +241,9 @@ def main():
     parser.add_argument('--no-tree', dest='include_tree', action='store_false', help="Disable the repo overview, overriding config.")
     parser.add_argument('--copy', dest='copy_to_clipboard', action='store_true', help="Copy the generated text to the clipboard using wl-copy.")
     parser.add_argument('--no-copy', dest='copy_to_clipboard', action='store_false', help="Skip copying the generated text, overriding config.")
-    parser.set_defaults(include_tree=None, copy_to_clipboard=None)
+    parser.add_argument('--debug', dest='debug_output', action='store_true', help="Print the full prompt payload sent to the model.")
+    parser.add_argument('--no-debug', dest='debug_output', action='store_false', help="Disable debug prompt output, overriding config.")
+    parser.set_defaults(include_tree=None, copy_to_clipboard=None, debug_output=None)
     
     args = parser.parse_args()
 
@@ -237,8 +270,10 @@ def main():
     max_tokens = args.max_tokens or config.get('max_tokens', None)
     max_completion_tokens = args.max_completion_tokens or config.get('max_completion_tokens', None)
     temperature = args.temperature or config.get('temperature', 0.7)
+    base_url = args.base_url or config.get('base_url')
     include_tree = config.get('include_tree', False) if args.include_tree is None else args.include_tree
     copy_to_clipboard = config.get('copy_to_clipboard', False) if args.copy_to_clipboard is None else args.copy_to_clipboard
+    debug_output = config.get('debug', False) if args.debug_output is None else args.debug_output
 
     # Ensure API key is provided
     if not api_key:
@@ -259,10 +294,12 @@ def main():
         model,
         temperature,
         api_key,
+        base_url,
         max_tokens,
         max_completion_tokens,
         context_text=context_text,
-        tree_summary=tree_summary
+        tree_summary=tree_summary,
+        debug=debug_output
     )
     
     # Output the generated text
