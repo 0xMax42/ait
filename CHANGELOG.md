@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.1](https://git.0xmax42.io/maxp/ait/compare/v0.3.0..v0.3.1) - 2026-01-04
 
 ### 📚 Documentation
 
