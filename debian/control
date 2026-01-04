@@ -1,0 +1,56 @@
+Source: ait
+Section: utils
+Priority: optional
+Maintainer: 0xMax42 <debian@0xMax42.io>
+Build-Depends: debhelper-compat (= 13), dh-virtualenv, python3, python3.12, python3.13, python3.14
+Standards-Version: 4.6.2
+Rules-Requires-Root: no
+
+Package: ait
+Architecture: all
+Depends: ait-0
+Description: ait CLI (API latest)
+ This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. 
+ It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative 
+ that requires summarizing changes between different branches or commits in a Git repository.
+
+Package: ait-0
+Architecture: all
+Depends: ait-python3.12 | ait-python3.13 | ait-python3.14
+Description: ait CLI (API 0.x)
+ This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. 
+ It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative 
+ that requires summarizing changes between different branches or commits in a Git repository.
+
+Package: ait-python3.12
+Architecture: all
+Replaces: ait-python3.13, ait-python3.14
+Provides: ait-runtime
+Pre-Depends: python3.12, ${misc:Pre-Depends}
+Depends: ${misc:Depends}
+Description: ait CLI (Python 3.12)
+ This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. 
+ It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative 
+ that requires summarizing changes between different branches or commits in a Git repository.
+
+Package: ait-python3.13
+Architecture: all
+Replaces: ait-python3.12, ait-python3.14
+Provides: ait-runtime
+Pre-Depends: python3.13, ${misc:Pre-Depends}
+Depends: ${misc:Depends}
+Description: ait CLI (Python 3.13)
+ This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. 
+ It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative 
+ that requires summarizing changes between different branches or commits in a Git repository.
+
+Package: ait-python3.14
+Architecture: all
+Replaces: ait-python3.12, ait-python3.13
+Provides: ait-runtime
+Pre-Depends: python3.14, ${misc:Pre-Depends}
+Depends: ${misc:Depends}
+Description: ait CLI (Python 3.14)
+ This script uses the OpenAI API to generate text based on the outputs of `git diff` and `git log` commands. 
+ It can be particularly useful for creating pull request descriptions, commit messages, or any other narrative 
+ that requires summarizing changes between different branches or commits in a Git repository.

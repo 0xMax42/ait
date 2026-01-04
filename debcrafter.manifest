@@ -1,0 +1,4 @@
+---
+debcrafter:
+    image: "git.0xmax42.io/simdev/python-deb-build-env:latest"
+---

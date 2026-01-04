@@ -1,0 +1,63 @@
+#!/usr/bin/make -f
+
+export DH_VIRTUALENV_INSTALL_ROOT=/opt/venvs
+# export DH_VIRTUALENV_APP=debcrafter
+
+%:
+	dh $@ --with python-virtualenv
+
+override_dh_install:
+	dh_install
+
+	for pkg in $(shell dh_listpackages); do \
+		case "$$pkg" in \
+			*-python3.[0-9][0-9]) ;; \
+			*) \
+				echo "Skipping non-runtime package $$pkg"; \
+				continue ;; \
+		esac; \
+		\
+		if [ -n "$$DH_VIRTUALENV_APP" ]; then \
+			app="$$DH_VIRTUALENV_APP"; \
+		else \
+			app="$${pkg%-python3.*}"; \
+		fi; \
+		\
+		echo "Creating CLI symlink for $$pkg → $$app"; \
+		install -d debian/$$pkg/usr/bin; \
+		ln -sf /opt/venvs/$$pkg/bin/$$app \
+			debian/$$pkg/usr/bin/$$app; \
+	done
+
+override_dh_virtualenv:
+	set -e; \
+	for pkg in $(shell dh_listpackages); do \
+		case "$$pkg" in \
+			*-python3.[0-9][0-9]) ;; \
+			*) \
+				echo "Skipping non-runtime package $$pkg"; \
+				continue ;; \
+		esac; \
+		py=$${pkg##*-}; \
+		echo "Building $$pkg with $$py"; \
+		dh_virtualenv \
+			--package=$$pkg \
+			--python=$$py \
+			--builtin-venv; \
+		\
+		venv_root=debian/$$pkg/opt/venvs/$$pkg; \
+		$$venv_root/bin/python \
+			-m pip uninstall --yes pip; \
+		echo "Normalizing interpreter symlinks in $$venv_root"; \
+		\
+		# Fix pythonX.Y symlink \
+		rm -f $$venv_root/bin/$$py; \
+		ln -s /usr/bin/$$py $$venv_root/bin/$$py; \
+		\
+		# Fix generic python symlink if present \
+		if [ -e $$venv_root/bin/python ]; then \
+			rm -f $$venv_root/bin/python; \
+			ln -s /usr/bin/$$py $$venv_root/bin/python; \
+		fi; \
+		\
+	done
