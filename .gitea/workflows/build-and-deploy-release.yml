@@ -55,6 +55,9 @@ jobs:
           poetry run twine upload --repository-url ${{ secrets.TWINE_URL }} dist/*
 
       - name: Upload assets
+        env:
+          GITEA_BASE_URL: https://git.0xmax42.io
+          GITEA_TOKEN: ${{ secrets.RELEASE_PUBLISH_TOKEN }}
         run: |
           tea-pkg release-asset maxp/ait ${{ github.event.release.tag_name }} \
             ./dist/*.whl ./dist/*.tar.gz
