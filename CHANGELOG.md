@@ -4,8 +4,15 @@ All notable changes to this project will be documented in this file.
 
 ## [unreleased]
 
+### 📚 Documentation
+
+- Update README project time badge URL - ([b08567a](https://git.0xmax42.io/maxp/ait/commit/b08567a8ad2b77975997738dd833fbca9ef0ebe9))
+
 ### ⚙️ Miscellaneous Tasks
 
+- *(ci)* Set gitea env vars for release asset upload - ([480e076](https://git.0xmax42.io/maxp/ait/commit/480e0769f398a55c7d1bd390b820ceef21fed8ac))
+- *(ci)* Use python 3.13 in release workflow - ([8619fe4](https://git.0xmax42.io/maxp/ait/commit/8619fe49a7ebd4365ce8d65a7946dfdbef379bfb))
+- *(debian)* Add python3.11 package and fix architectures - ([1eacb6f](https://git.0xmax42.io/maxp/ait/commit/1eacb6f659aa67996c081d63c3dc53f9972051df))
 - *(ci)* Drop debcrafter dependency from wheel release job - ([1a5fbd3](https://git.0xmax42.io/maxp/ait/commit/1a5fbd3a55f047efcddecf275ad94bfcf9af11a6))
 - *(ci)* Simplify release workflows and remove nightly tooling - ([c7b4be8](https://git.0xmax42.io/maxp/ait/commit/c7b4be8e339424c8eab6e72d6e258f50188bb694))
 - *(debian)* Add packaging configuration for debcrafter and dh-virtualenv - ([c608aa3](https://git.0xmax42.io/maxp/ait/commit/c608aa33abe3d2cd6ef60b480c433281e5013185))
