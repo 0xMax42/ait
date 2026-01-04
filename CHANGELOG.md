@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- *(ci)* Drop debcrafter dependency from wheel release job - ([1a5fbd3](https://git.0xmax42.io/maxp/ait/commit/1a5fbd3a55f047efcddecf275ad94bfcf9af11a6))
 - *(ci)* Simplify release workflows and remove nightly tooling - ([c7b4be8](https://git.0xmax42.io/maxp/ait/commit/c7b4be8e339424c8eab6e72d6e258f50188bb694))
 - *(debian)* Add packaging configuration for debcrafter and dh-virtualenv - ([c608aa3](https://git.0xmax42.io/maxp/ait/commit/c608aa33abe3d2cd6ef60b480c433281e5013185))
 
