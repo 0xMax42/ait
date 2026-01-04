@@ -2,10 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
-## [unreleased]
+## [0.3.0](https://git.0xmax42.io/maxp/ait/compare/v0.2.0..v0.3.0) - 2026-01-04
 
 ### 🚀 Features
 
+- *(ait)* Support advanced git args, custom base URL and debug output - ([8487d8a](https://git.0xmax42.io/maxp/ait/commit/8487d8ac21461921b637ed7d8523d1958e2a7484))
 - Add clipboard export option via wl-copy and config - ([4a86c46](https://git.0xmax42.io/maxp/ait/commit/4a86c4671160ddc610f500ffc4fc38e23314f5a9))
 - Add context file and repo tree snapshot support - ([bdadc77](https://git.0xmax42.io/maxp/ait/commit/bdadc77187fc0e5df593d85d8dfa0bd64d35ee6f))
 
