@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file.
 
 ### ⚙️ Miscellaneous Tasks
 
+- *(workflow)* Remove custom cache action from ci pipeline - ([6296750](https://git.0xmax42.io/maxp/ait/commit/629675090d64546b38981fd117562d7377d923d2))
 - *(ci)* Publish debs to main or unstable based on prerelease - ([ba5ac63](https://git.0xmax42.io/maxp/ait/commit/ba5ac630e509d2a5e69a8aca055c500e26566286))
 
 ## [0.3.1](https://git.0xmax42.io/maxp/ait/compare/v0.3.0..v0.3.1) - 2026-01-04
