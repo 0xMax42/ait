@@ -24,14 +24,6 @@ jobs:
           apt-get update -qq
           apt-get install -yq tea-pkg-0
 
-      - name: 🔄 Restore cache
-        uses: https://git.0xmax42.io/actions/cache@v1
-        with:
-          key: poetry-v1-${{ runner.os }}-${{ hashFiles('poetry.lock') }}
-          paths: |
-            ~/.cache/pypoetry
-            ~/.cache/pip
-
       - name: Install Poetry
         run: |
           pip install poetry
